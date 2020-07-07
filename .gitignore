@@ -105,3 +105,4 @@ dist
 
 har_files/*
 *.sublime-project
+*.sublime-workspace
