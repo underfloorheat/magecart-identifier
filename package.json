@@ -1,0 +1,30 @@
+{
+  "name": "checking_for_magecart",
+  "version": "1.0.0",
+  "description": "Grab the HAR from a web request to your configured page and parse it for known magecart urls and IPs",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/underfloorheat/magecart-identifier.git"
+  },
+  "keywords": [
+    "magecart"
+  ],
+  "author": "Chris Sewell",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/underfloorheat/magecart-identifier/issues"
+  },
+  "homepage": "https://github.com/underfloorheat/magecart-identifier#readme",
+  "dependencies": {
+    "bufferutil": "^4.0.1",
+    "chrome-har": "^0.11.9",
+    "fs": "0.0.1-security",
+    "puppeteer": "^4.0.1",
+    "utf-8-validate": "^5.0.2",
+    "util": "^0.12.3"
+  }
+}

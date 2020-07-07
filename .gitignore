@@ -102,3 +102,6 @@ dist
 
 # TernJS port file
 .tern-port
+
+har_files/*
+*.sublime-project
