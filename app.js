@@ -31,7 +31,6 @@ const { harFromMessages } = require('chrome-har');
 // list of events for converting to HAR
 const events = [];
 
-const harOutputDirectory = 'har_files';
 
 // event types to observe
 const observe = [
@@ -47,6 +46,11 @@ const observe = [
 	'Network.loadingFinished',
 	'Network.loadingFailed'
 ];
+
+const harOutputDirectory = 'har_files';
+if (!fs.existsSync(harOutputDirectory)){
+    fs.mkdirSync(harOutputDirectory);
+}
 
 (async () => {
 	// Build regex pattern
