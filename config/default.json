@@ -45,7 +45,6 @@
 	|
 	 */
 	"exclusions": [
-		"js",
 		"css",
 		"gif",
 		"jpg",
