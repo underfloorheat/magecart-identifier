@@ -22,9 +22,9 @@ const argv = require('yargs')
 	.alias('r', 'requests')
 	.boolean(['r'])
 	.describe('r', 'Only output HTTP requests')
-	.alias('e', 'exclude')
-	.boolean(['e'])
-	.describe('e', 'Exclude params from request output')
+	.alias('p', 'params')
+	.boolean(['p'])
+	.describe('p', 'Exclude params from request output')
 	.demandCommand(1)
 	.help('h')
 	.alias('h', 'help')
@@ -109,7 +109,7 @@ if (!fs.existsSync(config.harOutputDirectory)){
 			let ext = path.extname(entry.request.url.split('?')[0]);
 			ext = ext.charAt(0) == '.' ? ext.substring(1) : ext ;
 			if(!config.exclusions.includes(ext)) {
-				if(argv.e) {
+				if(argv.p) {
 					console.log(entry.request.url.split('?')[0]);
 				} else {
 					console.log(entry.request.url);
