@@ -110,11 +110,14 @@ if (!fs.existsSync(config.harOutputDirectory)){
 			ext = ext.charAt(0) == '.' ? ext.substring(1) : ext ;
 			if(!config.exclusions.includes(ext)) {
 				if(argv.p) {
-					console.log(entry.request.url.split('?')[0]);
+					urls.push(entry.request.url.split('?')[0]);
 				} else {
-					console.log(entry.request.url);
+					urls.push(entry.request.url);
 				}
 			}
+		}
+		for(const url of urls.sort()) {
+			console.log(url);
 		}
 	} else {
 		let riskyRequests = [];
@@ -131,7 +134,7 @@ if (!fs.existsSync(config.harOutputDirectory)){
 				console.log(url);
 			}
 		} else {
-			console.log('\nNo threats found');
+			console.log('\nNo magecart indicators found');
 		}
 	}
 	console.log('\nThe full request HAR can be found at ' + __dirname
