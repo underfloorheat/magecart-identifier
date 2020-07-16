@@ -1,0 +1,59 @@
+{
+	/*
+	|--------------------------------------------------------------------------
+	| Magecart Compromise Indicators
+	|--------------------------------------------------------------------------
+	|
+	| This is a list of domains and IP addresses known to be involved in
+	| magecart attacks
+	|
+	 */
+	"indicators": [
+		"payment-mastercard.com",
+		"google-query.com",
+		"google-analytics.top",
+		"google-smart.com",
+		"google-payment.com",
+		"jquery-assets.com",
+		"sagepay-live.com",
+		"google-query.com",
+		"payment-sagepay.com",
+		"payment-worldpay.com",
+		"124.156.34.157",
+		"47.245.55.198",
+		"5.53.124.235",
+		"jsboxcontents.com",
+		"ms-akadns.com",
+		"survey-microsoft.net",
+		"cnzz.work",
+		"45.76.97.191",
+		"54.215.230.114",
+		"cnzz.space",
+		"45.76.97.191",
+		"139.180.207.51",
+		"202.181.24.14",
+		"103.230.122.162",
+		"sdsyxwx.com",
+		"45.76.97.191"
+	],
+	/*
+	|--------------------------------------------------------------------------
+	| Request Exclusion List
+	|--------------------------------------------------------------------------
+	|
+	| File extensions to exclude when outputting HTTP request only
+	|
+	 */
+	"exclusions": [
+		"js",
+		"css",
+		"gif",
+		"jpg",
+		"jpeg",
+		"png",
+		"svg",
+		"ttf",
+		"woff"
+	],
+	"harOutputDirectory": "har_files",
+}

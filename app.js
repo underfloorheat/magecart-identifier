@@ -11,36 +11,49 @@
 | GNU general public license
 |
 */
+'use strict';
 
-let myArgs = process.argv.slice(2);
 
-if(myArgs.length == 0) {
-	console.log('You must supply a test page uri.');
-	return false;
-}
+const argv = require('yargs')
+	.usage('Usage: node $0 [options] <url>')
+	.example('node $0 https://www.site.com', 'Test url for known vulnerabilities')
+	.example('node $0 -r https://www.site.com', 'Only output HTTP requests from url')
+	.example('node $0 -re https://www.site.com', 'Output HTTP requests excluding params')
+	.alias('r', 'requests')
+	.boolean(['r'])
+	.describe('r', 'Only output HTTP requests')
+	.alias('e', 'exclude')
+	.boolean(['e'])
+	.describe('e', 'Exclude params from request output')
+	.demandCommand(1)
+	.help('h')
+	.alias('h', 'help')
+	.argv;
 
 const uriPattern = /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
-
-const uri = myArgs[0].replace(/"/g, '');
+const uri = argv._[0];
 
 if(!uriPattern.test(uri)) {
 	console.log('You have not entered a valid URL');
 	return false;
 }
-
 const filename = uri.split('?')[0]
 					.split('/')
 					.pop();
-
+/*
+|---------------------------------------------------------------------
+| We have everything we need from the user so lets get started
+|
+ */
+const config = require('config');
+const path = require('path')
 const fs = require('fs');
 const { promisify } = require('util');
-
 const puppeteer = require('puppeteer');
 const { harFromMessages } = require('chrome-har');
 
 // list of events for converting to HAR
 const events = [];
-
 
 // event types to observe
 const observe = [
@@ -57,18 +70,13 @@ const observe = [
 	'Network.loadingFailed'
 ];
 
-const harOutputDirectory = 'har_files';
-if (!fs.existsSync(harOutputDirectory)){
-    fs.mkdirSync(harOutputDirectory);
+// Create the har file output directory if it doesn't exist
+if (!fs.existsSync(config.harOutputDirectory)){
+    fs.mkdirSync(config.harOutputDirectory);
 }
 
 (async () => {
-	// Build regex pattern
-	let regExPattern;
-	await fs.readFile('url-patterns.txt', (err, data) => {
-		if (err) throw err;
-		regExPattern = new RegExp(data.toString().trim().split('\n').join('|'));
-	});
+	let regExPattern = new RegExp(config.indicators.join('|'));
 
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
@@ -89,23 +97,44 @@ if (!fs.existsSync(harOutputDirectory)){
 	// convert events to HAR file
 	const har = harFromMessages(events);
 
-	await promisify(fs.writeFile)(harOutputDirectory + '/' + filename + '.har', JSON.stringify(har, null, 4));
+	await promisify(fs.writeFile)(
+		config.harOutputDirectory + '/' + filename + '.har',
+		JSON.stringify(har, null, 4)
+	);
 
-	let riskyRequests = [];
-
-	for(let entry of har.log.entries) {
-		if(regExPattern.test(entry.request.url)) {
-			riskyRequests.push(entry.request.url);
-		}
-	}
-
-	if(riskyRequests.length > 0) {
-		console.log('\nUnauthorised url(s) found.\n');
-		for(let url of riskyRequests) {
-			console.log(url);
+	if(argv.r) { // only output http requests
+		let urls = [];
+		for(const entry of har.log.entries) {
+			// only output files of type
+			let ext = path.extname(entry.request.url.split('?')[0]);
+			ext = ext.charAt(0) == '.' ? ext.substring(1) : ext ;
+			if(!config.exclusions.includes(ext)) {
+				if(argv.e) {
+					console.log(entry.request.url.split('?')[0]);
+				} else {
+					console.log(entry.request.url);
+				}
+			}
 		}
 	} else {
-		console.log('\nNo threats found');
+		let riskyRequests = [];
+
+		for(const entry of har.log.entries) {
+			if(regExPattern.test(entry.request.url)) {
+				riskyRequests.push(entry.request.url);
+			}
+		}
+
+		if(riskyRequests.length > 0) {
+			console.log('\nUnauthorised url(s) found.\n');
+			for(let url of riskyRequests) {
+				console.log(url);
+			}
+		} else {
+			console.log('\nNo threats found');
+		}
 	}
-	console.log('\nThe full request HAR can be found at ' + __dirname + '/' + filename + '.har\n');
+	console.log('\nThe full request HAR can be found at ' + __dirname
+		+ '/' + config.harOutputDirectory
+		+ '/' + filename + '.har\n');
 })();
