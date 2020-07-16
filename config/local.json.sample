@@ -1,0 +1,21 @@
+/**
+ * duplicate this file and rename it to config/local.json.  Then add
+ * your own list of expected HTTP requests to the 'expected' array below.
+ */
+
+{
+	/*
+	|--------------------------------------------------------------------------
+	| Expected HTTP requests
+	|--------------------------------------------------------------------------
+	|
+	| This is a list of HTTP requests you expect your site to make.
+	| We will test all HTTP requests against this list and flag any which
+	| do not appear as this may indicate they have been injected by a
+	| malicious third party.
+	|
+	*/
+	"expected": [
+
+	]
+}

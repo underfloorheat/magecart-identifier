@@ -106,3 +106,5 @@ dist
 har_files
 *.sublime-project
 *.sublime-workspace
+
+config/local.json
