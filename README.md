@@ -4,7 +4,18 @@
 
 ## Usage
 
-	node app.js TheUrlYouWantToTest
+	node app.js [options] <url>
+
+	Options:
+	  --version       Show version number                                  [boolean]
+	  -r, --requests  Only output HTTP requests                            [boolean]
+	  -e, --exclude   Exclude params from request output                   [boolean]
+	  -h, --help      Show help                                            [boolean]
+
+	Examples:
+	  node app.js https://www.site.com      Test url for known vulnerabilities
+	  node app.js -r https://www.site.com   Only output HTTP requests from url
+	  node app.js -re https://www.site.com  Output HTTP requests excluding params
 
 ## What it's doing
 
