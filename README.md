@@ -1,6 +1,6 @@
 # magecart-identifier
 
-> HAR scanning for known magecart indicators
+HAR scanning for known magecart indicators
 
 ## Usage
 
@@ -49,6 +49,8 @@ The script will, using [puppeteer](https://github.com/puppeteer/puppeteer), load
 * 45.76.97.191
 
 The HAR file will also be saved in a directory called `har_files` in the root of this project for further analysis.
+
+By using the -r and -p flags, you can also use this tool to simply output the url's of all HTTP requests your page is making.  This will allow for a manual look at what's going on.
 
 ## Version 2 functional wishlist
 
