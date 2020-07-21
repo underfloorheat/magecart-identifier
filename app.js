@@ -46,6 +46,7 @@ const filename = uri.split('?')[0]
 |
  */
 const config = require('config');
+const _ = require('lodash');
 const path = require('path')
 const fs = require('fs');
 const { promisify } = require('util');
