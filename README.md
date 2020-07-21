@@ -7,15 +7,20 @@ HAR scanning for known magecart indicators
 	node app.js [options] <url>
 
 	Options:
-	  --version       Show version number                                  [boolean]
-	  -r, --requests  Only output HTTP requests                            [boolean]
-	  -e, --exclude   Exclude params from request output                   [boolean]
-	  -h, --help      Show help                                            [boolean]
+	  --version           Show version number                              [boolean]
+	  -r, --requests      Output HTTP requests                             [boolean]
+	  -p, --params        Exclude params from request output               [boolean]
+	  -c, --content-type  The content-type you want to output
+	  -h, --help          Show help                                        [boolean]
 
 	Examples:
-	  node app.js https://www.site.com      Test url for known vulnerabilities
-	  node app.js -r https://www.site.com   Only output HTTP requests from url
-	  node app.js -re https://www.site.com  Output HTTP requests excluding params
+	  node app.js https://www.site.com          Test url for known vulnerabilities
+	  node app.js -r https://www.site.com       Output HTTP requests from url
+	  node app.js -r -p https://www.site.com    Output HTTP requests excluding
+	                                            params
+	  node app.js -r                            Output HTTP requests for specific
+	  --content-type=javascript,jpg,png         content-types
+	  https://www.site.com
 
 ## What it's doing
 
@@ -50,7 +55,7 @@ The script will, using [puppeteer](https://github.com/puppeteer/puppeteer), load
 
 The HAR file will also be saved in a directory called `har_files` in the root of this project for further analysis.
 
-By using the -r and -p flags, you can also use this tool to simply output the url's of all HTTP requests your page is making.  This will allow for a manual look at what's going on.
+By using the -r and -p flags, you can also use this tool to simply output the url's of all HTTP requests your page is making.  This will allow for a manual look at what's going on.  I've recently added the --content-type (or -c) flag allowing a comma separated list of which mime types you want to review in the output.
 
 ## Version 2 functional wishlist
 
