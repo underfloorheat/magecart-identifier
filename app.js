@@ -17,26 +17,30 @@
 const argv = require('yargs')
 	.usage('Usage: node $0 [options] <url>')
 	.example('node $0 https://www.site.com', 'Test url for known vulnerabilities')
-	.example('node $0 -r https://www.site.com', 'Only output HTTP requests from url')
-	.example('node $0 -re https://www.site.com', 'Output HTTP requests excluding params')
+	.example('node $0 -r https://www.site.com', 'Output HTTP requests from url')
+	.example('node $0 -r -p https://www.site.com', 'Output HTTP requests excluding params')
+	.example('node $0 -r -p --content=javascript https://www.site.com', 'Output javascript HTTP requests excluding params')
 	.alias('r', 'requests')
 	.boolean(['r'])
-	.describe('r', 'Only output HTTP requests')
+	.describe('r', 'Output HTTP requests')
 	.alias('p', 'params')
 	.boolean(['p'])
 	.describe('p', 'Exclude params from request output')
+	.alias('c', 'content-type')
+	.describe('c', 'The content-type you want to output')
 	.demandCommand(1)
 	.help('h')
 	.alias('h', 'help')
 	.argv;
 
+// Check we have a valid URL
 const uriPattern = /^(?:(?:(?:https?|ftp):)?\/\/)(?:\S+(?::\S*)?@)?(?:(?!(?:10|127)(?:\.\d{1,3}){3})(?!(?:169\.254|192\.168)(?:\.\d{1,3}){2})(?!172\.(?:1[6-9]|2\d|3[0-1])(?:\.\d{1,3}){2})(?:[1-9]\d?|1\d\d|2[01]\d|22[0-3])(?:\.(?:1?\d{1,2}|2[0-4]\d|25[0-5])){2}(?:\.(?:[1-9]\d?|1\d\d|2[0-4]\d|25[0-4]))|(?:(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)(?:\.(?:[a-z\u00a1-\uffff0-9]-*)*[a-z\u00a1-\uffff0-9]+)*(?:\.(?:[a-z\u00a1-\uffff]{2,})))(?::\d{2,5})?(?:[/?#]\S*)?$/i;
 const uri = argv._[0];
-
 if(!uriPattern.test(uri)) {
 	console.log('You have not entered a valid URL');
 	return false;
 }
+// Set the HAR file filename
 const filename = uri.split('?')[0]
 					.split('/')
 					.pop();
@@ -77,7 +81,6 @@ if (!fs.existsSync(config.harOutputDirectory)){
 }
 
 (async () => {
-	let regExPattern = new RegExp(config.indicators.join('|'));
 
 	const browser = await puppeteer.launch();
 	const page = await browser.newPage();
@@ -98,46 +101,68 @@ if (!fs.existsSync(config.harOutputDirectory)){
 	// convert events to HAR file
 	const har = harFromMessages(events);
 
+	// Save the HAR file to disk
 	await promisify(fs.writeFile)(
 		config.harOutputDirectory + '/' + filename + '.har',
 		JSON.stringify(har, null, 4)
 	);
 
-	if(argv.r) { // only output http requests
+	/*-------------------------------------------------------------
+	|
+	|  Output HTTP requests
+	|
+	*/
+	if(argv.r) {
 		let urls = [];
-		for(const entry of har.log.entries) {
-			// only output files of type
-			let ext = path.extname(entry.request.url.split('?')[0]);
-			ext = ext.charAt(0) == '.' ? ext.substring(1) : ext ;
-			if(!config.exclusions.includes(ext)) {
-				if(argv.p) {
-					urls.push(entry.request.url.split('?')[0]);
-				} else {
-					urls.push(entry.request.url);
-				}
+		const entries = _.filter(har.log.entries, (entry) => {
+			if(argv.c == undefined) {
+				return true;
 			}
-		}
+			let entryIndex = _.findIndex(entry.response.headers, (header) => {
+				for(let c of _.split(argv.c, ',')) {
+					if(_.toLower(header.name) == 'content-type' && _.includes(_.toLower(header.value), c)) {
+						return true;
+					}
+				}
+				return false;
+			});
+			return entryIndex > 0 ? true : false;
+		});
+
+		urls = _.map(entries, (entry) => {
+			return argv.p ? entry.request.url.split('?')[0] : entry.request.url;
+		});
+
 		for(const url of urls.sort()) {
 			console.log(url);
 		}
-	} else {
-		let riskyRequests = [];
+	}
 
-		for(const entry of har.log.entries) {
-			if(regExPattern.test(entry.request.url)) {
-				riskyRequests.push(entry.request.url);
-			}
-		}
+	/*-------------------------------------------------------------
+	|
+	|  Check HAR file content against known magecart indicators
+	|
+	*/
 
-		if(riskyRequests.length > 0) {
-			console.log('\nUnauthorised url(s) found.\n');
-			for(let url of riskyRequests) {
-				console.log(url);
-			}
-		} else {
-			console.log('\nNo magecart indicators found');
+	// Create a RegEx pattern containing the magecart indicators
+	let regExPattern = new RegExp(config.indicators.join('|'));
+	let riskyRequests = [];
+
+	for(const entry of har.log.entries) {
+		if(regExPattern.test(entry.request.url)) {
+			riskyRequests.push(entry.request.url);
 		}
 	}
+
+	if(riskyRequests.length > 0) {
+		console.log('\nUnauthorised url(s) found.\n');
+		for(let url of riskyRequests) {
+			console.log(url);
+		}
+	} else {
+		console.log('\nNo magecart indicators found');
+	}
+
 	console.log('\nThe full request HAR can be found at ' + __dirname
 		+ '/' + config.harOutputDirectory
 		+ '/' + filename + '.har\n');
