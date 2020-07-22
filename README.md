@@ -11,6 +11,7 @@ HAR scanning for known magecart indicators
 	  -r, --requests      Output HTTP requests                             [boolean]
 	  -p, --params        Exclude params from request output               [boolean]
 	  -c, --content-type  The content-type you want to output
+	  -d, --domain-only   Show domains only in HTTP request output         [boolean]
 	  -h, --help          Show help                                        [boolean]
 
 	Examples:
@@ -21,6 +22,8 @@ HAR scanning for known magecart indicators
 	  node app.js -r                            Output HTTP requests for specific
 	  --content-type=javascript,jpg,png         content-types
 	  https://www.site.com
+	  node app.js -rd https://www.site.com      Show domains only in HTTP request
+	                                            output
 
 ## What it's doing
 
