@@ -1,6 +1,6 @@
 {
   "name": "checking_for_magecart",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Parse a URL for known magecart indicators or output possibly dangerous HTTP requests from page.",
   "main": "app.js",
   "scripts": {
