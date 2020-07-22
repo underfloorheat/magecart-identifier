@@ -20,6 +20,7 @@ const argv = require('yargs')
 	.example('node $0 -r https://www.site.com', 'Output HTTP requests from url')
 	.example('node $0 -r -p https://www.site.com', 'Output HTTP requests excluding params')
 	.example('node $0 -r --content-type=javascript,jpg,png https://www.site.com', 'Output HTTP requests for specific content-types')
+	.example('node $0 -rd https://www.site.com', 'Show domains only in HTTP request output')
 	.alias('r', 'requests')
 	.boolean(['r'])
 	.describe('r', 'Output HTTP requests')
@@ -28,6 +29,9 @@ const argv = require('yargs')
 	.describe('p', 'Exclude params from request output')
 	.alias('c', 'content-type')
 	.describe('c', 'The content-type you want to output')
+	.alias('d', 'domain-only')
+	.boolean(['d'])
+	.describe('d', 'Show domains only in HTTP request output')
 	.demandCommand(1)
 	.help('h')
 	.alias('h', 'help')
@@ -56,6 +60,7 @@ const fs = require('fs');
 const { promisify } = require('util');
 const puppeteer = require('puppeteer');
 const { harFromMessages } = require('chrome-har');
+const url = require('url');
 
 // list of events for converting to HAR
 const events = [];
@@ -114,6 +119,7 @@ if (!fs.existsSync(config.harOutputDirectory)){
 	*/
 	if(argv.r) {
 		let urls = [];
+		// Filter for content type
 		const entries = _.filter(har.log.entries, (entry) => {
 			if(argv.c == undefined) {
 				return true;
@@ -128,12 +134,22 @@ if (!fs.existsSync(config.harOutputDirectory)){
 			});
 			return entryIndex > 0 ? true : false;
 		});
-
+		// Collate response URLs
 		urls = _.map(entries, (entry) => {
-			return argv.p ? entry.request.url.split('?')[0] : entry.request.url;
+			const entryUrl = new URL(entry.request.url);
+			// Domains only
+			if(argv.d) {
+				return entryUrl.origin;
+			}
+			// Remove params
+			if(argv.p) {
+				return entryUrl.origin + entryUrl.pathname;
+			}
+			// Full url
+			entryUrl.href;
 		});
 
-		for(const url of urls.sort()) {
+		for(const url of _.uniq(urls.sort())) {
 			console.log(url);
 		}
 	}
