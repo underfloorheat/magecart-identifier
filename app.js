@@ -33,6 +33,8 @@ const argv = require('yargs')
 	.boolean(['d'])
 	.describe('d', 'Show domains only in HTTP request output')
 	.demandCommand(1)
+	.alias('c', 'content-type')
+	.describe('c', 'The content-type you want to output')
 	.help('h')
 	.alias('h', 'help')
 	.argv;
@@ -109,12 +111,13 @@ const { getHarFile } = require('./har.js');
 		let urls = [];
 		// Filter for content type
 		const entries = _.filter(har.log.entries, (entry) => {
-			if(argv.c == undefined) {
+			if(argv.contentType == undefined) {
 				return true;
 			}
 			let entryIndex = _.findIndex(entry.response.headers, (header) => {
-				for(let c of _.split(argv.c, ',')) {
-					if(_.toLower(header.name) == 'content-type' && _.includes(_.toLower(header.value), c)) {
+				for(let c of _.split(argv.contentType, ',')) {
+					if(_.toLower(header.name) == 'content-type'
+						&& _.includes(_.toLower(header.value), c)) {
 						return true;
 					}
 				}
