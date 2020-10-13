@@ -55,62 +55,50 @@ const filename = uri.split('?')[0]
  */
 const config = require('config');
 const _ = require('lodash');
-const path = require('path')
+const url = require('url');
 const fs = require('fs');
 const { promisify } = require('util');
-const puppeteer = require('puppeteer');
-const { harFromMessages } = require('chrome-har');
-const url = require('url');
-
-// list of events for converting to HAR
-const events = [];
-
-// event types to observe
-const observe = [
-	'Page.loadEventFired',
-	'Page.domContentEventFired',
-	'Page.frameStartedLoading',
-	'Page.frameAttached',
-	'Network.requestWillBeSent',
-	'Network.requestServedFromCache',
-	'Network.dataReceived',
-	'Network.responseReceived',
-	'Network.resourceChangedPriority',
-	'Network.loadingFinished',
-	'Network.loadingFailed'
-];
-
-// Create the har file output directory if it doesn't exist
-if (!fs.existsSync(config.harOutputDirectory)){
-    fs.mkdirSync(config.harOutputDirectory);
-}
+const { getHarFile } = require('./har.js');
 
 (async () => {
 
-	const browser = await puppeteer.launch();
-	const page = await browser.newPage();
+	let har = {};
+	let filename = '';
 
-	// register events listeners
-	const client = await page.target().createCDPSession();
-	await client.send('Page.enable');
-	await client.send('Network.enable');
-	observe.forEach(method => {
-		client.on(method, params => {
-			events.push({ method, params });
-		});
-	});
+	/**
+	 * Get a HAR file either from one being passed or by generating
+	 * a new one using puppeteer
+	 */
+	if(argv.harFile != undefined) { // We've been passed a HAR file
+		if(!fs.existsSync(argv.harFile)) {
+			throw new Error("The HAR file path you provided doesn't exist");
+		}
+		har = JSON.parse(fs.readFileSync(argv.harFile));
+		if(har.log.entries == undefined) {
+			throw new Error("You've supplied an invalid HAR file");
+		}
+	} else { // We've been passed a URL and need to generate the HAR file
 
-	await page.goto(uri);
-	await browser.close();
+		// Create a URL object for use later
+		const uri = new URL(argv._[0]);
 
-	// convert events to HAR file
-	const har = harFromMessages(events);
+		// Set the HAR file filename
+		filename = uri.pathname.split('/').pop();
 
-	// Save the HAR file to disk
-	await promisify(fs.writeFile)(
-		config.harOutputDirectory + '/' + filename + '.har',
-		JSON.stringify(har, null, 4)
-	);
+		// Create the har file output directory if it doesn't exist
+		if (!fs.existsSync(config.harOutputDirectory)){
+		    fs.mkdirSync(config.harOutputDirectory);
+		}
+
+		// Generate the HAR file
+		har = await getHarFile(uri);
+
+		// Save the HAR file to disk
+		await promisify(fs.writeFile)(
+			config.harOutputDirectory + '/' + filename + '.har',
+			JSON.stringify(har, null, 4)
+		);
+	}
 
 	/*-------------------------------------------------------------
 	|
