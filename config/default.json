@@ -56,4 +56,5 @@
 		"woff"
 	],
 	"harOutputDirectory": "har_files",
+	"requestsOutputDirectory": "requests",
 }

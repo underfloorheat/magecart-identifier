@@ -1,15 +1,14 @@
 /**
- * duplicate this file and rename it to config/local.json.  Then add
- * your own list of expected HTTP requests to the 'expected' array below.
+ * duplicate this file and rename it to config/local.json.
  */
 
 {
 	/*
 	|--------------------------------------------------------------------------
-	| Expected HTTP requests
+	| Expected HTTP request domains
 	|--------------------------------------------------------------------------
 	|
-	| This is a list of HTTP requests you expect your site to make.
+	| This is a list of the domains where you expect HHTP requests to be made to.
 	| We will test all HTTP requests against this list and flag any which
 	| do not appear as this may indicate they have been injected by a
 	| malicious third party.
