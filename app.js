@@ -35,6 +35,9 @@ const argv = require('yargs')
 	.demandCommand(1)
 	.alias('c', 'content-type')
 	.describe('c', 'The content-type you want to output')
+	.alias('w', 'write-to-file')
+	.boolean(['w'])
+	.describe('w', 'Write HTTP requests to file instead of stdout')
 	.help('h')
 	.alias('h', 'help')
 	.argv;
@@ -142,6 +145,20 @@ const { getHarFile } = require('./har.js');
 
 		for(const url of _.uniq(urls.sort())) {
 			console.log(url);
+		if(argv.writeToFile) {
+			// Create the request file output directory if it doesn't exist
+			if (!fs.existsSync(config.requestsOutputDirectory)){
+		    	fs.mkdirSync(config.requestsOutputDirectory);
+			}
+			// Save the HAR file to disk
+			await promisify(fs.writeFile)(
+				config.requestsOutputDirectory + '/' + filename + '.har',
+				JSON.stringify(sortedUrls, null, 4)
+			);
+		} else {
+			for(const urlStr of sortedUrls) {
+				console.log(urlStr);
+			}
 		}
 	}
 
