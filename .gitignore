@@ -104,7 +104,8 @@ dist
 .tern-port
 
 har_files
+requests
 *.sublime-project
 *.sublime-workspace
 
-config/local.json
+config/expected.json
